@@ -21,17 +21,21 @@ if (!defined('ABSPATH')) {
 // $client = new MongoDB\Client("mongodb://localhost:27017");
 
 
+/**
+ * Global function for testing purposes
+ */
+function dd($array = null)
+{
+    echo '<pre>';
+    print_r($array);
+    echo '</pre>';
+}
+
 define('WP_ADAMKYC_PATH', plugin_dir_path(__FILE__));
 define('WP_ADAMKYC_URL', plugin_dir_url(__FILE__));
 define('WP_ADAMKYC_VERSION', '2.1.2');
+
 require(__DIR__ . '/src/AdamkycPlugin.php');
 
-
-register_activation_hook(__FILE__, '');
-function plugin_activation_hook()
-{
-    die('Hooks');
-
-}
 
 $plugin = new AdamkycPlugin();

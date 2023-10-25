@@ -13,8 +13,5 @@
             "name": "Akshay Bhatt"
         }
     ],
-    "require": {
-        "mongodb/mongodb": "^1.16",
-        "jenssegers/mongodb": "^4.0"
-    }
+    "require": {}
 }

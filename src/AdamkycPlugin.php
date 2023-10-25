@@ -1,6 +1,6 @@
 <?php
 
-require(__DIR__ . '/Mongo.php');
+require(__DIR__ . '/DB.php');
 
 if (!class_exists('AdamkycPlugin')) {
     class AdamkycPlugin
@@ -32,19 +32,20 @@ if (!class_exists('AdamkycPlugin')) {
          * Namespace for api
          */
         public $routeNamespace = 'api-adamkyc/v1';
-        public $connection = null;
+        public $db = null;
 
 
         public function __construct()
         {
 
+            $this->db = new DB();
             $this->plugin_url = plugins_url('/', __FILE__);
             $this->plugin_path = plugin_dir_path(__FILE__);
             //shows the menu item in sidebar
             add_action('admin_menu', array($this, 'load_menus'));
             // registers the api routes
             add_action('rest_api_init', [$this, 'load_api_routes']);
-            add_action('rest_api_init', [$this, 'db_routes']);
+            add_action('rest_api_init', [$this, 'load_db_routes']);
             // function executes when shortcode is used
             add_shortcode('adamkyc_load_screen', [$this, 'loadScreen']);
 
@@ -66,17 +67,19 @@ if (!class_exists('AdamkycPlugin')) {
             // register routes
             register_rest_route(
                 $this->routeNamespace,
-                '/testing',
+                '/me',
                 array(
 
                     'methods' => 'GET',
-                    'callback' => array($this, 'callbackPosts'),
+                    'callback' => array($this, 'me'),
                 )
             );
 
+
+
         }
 
-        public function db_routes()
+        public function load_db_routes()
         {
             register_rest_route(
                 $this->routeNamespace,
@@ -97,38 +100,37 @@ if (!class_exists('AdamkycPlugin')) {
                 )
             );
         }
+
+        public function me()
+        {
+            global $current_user, $wp_posts;
+            $currentUser = (is_user_logged_in() ? $current_user : null);
+            return wp_send_json(
+                array(
+                    'user' => $currentUser,
+                )
+            );
+        }
+        /**
+         * Start connection
+         */
         public function connect()
         {
-            $connection = new Mongo();
-            return $connection->start();
+            return $this->db->start();
         }
 
 
         public function disconnect()
         {
-            $connection = new Mongo();
-            if ($connection) {
+            if ($this->db) {
 
-                return $connection->close();
+                return $this->db->close();
             }
 
             return false;
         }
 
-        /**
-         * 
-         */
-        public function callbackPosts()
-        {
-            global $current_user, $wp_posts;
-            wp_get_current_user();
-            $return = array(
-                'user' => $current_user,
-                'ID' => 1
-            );
 
-            return wp_send_json($return);
-        }
 
 
 
