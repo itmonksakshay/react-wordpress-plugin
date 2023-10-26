@@ -134,7 +134,6 @@ if (!class_exists('AdamkycPlugin')) {
 
         public function saveOptions($params = [])
         {
-
             //update username
             if (isset($params['username']) && $params['username'] !== ''):
                 update_option('mongo_username', $params['username']);

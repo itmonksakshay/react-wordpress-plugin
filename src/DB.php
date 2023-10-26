@@ -18,21 +18,39 @@ class DB
 
     public function __construct()
     {
-        $this->username = (get_option('mongo_username') !== '') ? get_option('mongo_username') : '';
-        $this->password = get_option('mongo_password');
-        $this->host = get_option('mongo_host');
-        $this->database = get_option('mongo_database');
+        if (get_option('mongo_username') !== ''):
+            $this->username = get_option('mongo_username');
+        else:
+            return false;
+        endif;
+
+
+        if (get_option('mongo_password') !== ''):
+            $this->password = get_option('mongo_password');
+        else:
+            return false;
+        endif;
+
+
+        if (get_option('mongo_host') !== ''):
+            $this->host = get_option('mongo_host');
+        endif;
+
+
+        if (get_option('mongo_database') !== ''):
+            $this->database = get_option('mongo_database');
+        endif;
+
         // create url
         $this->url = "mongodb://$this->username:$this->password@$this->host/$this->database";
         try {
             $this->connection = new MongoDB\Client($this->url);
-
         } catch (\Throwable $th) {
             //throw $th;
             return wp_send_json(
                 array(
                     'connection' => true,
-                    'message' => 'INVALKID URL',
+                    'message' => 'Invalid URL',
                 )
             );
         }
@@ -46,7 +64,7 @@ class DB
     {
 
 
-               try {
+        try {
             // Send a ping to confirm a successful connection
             $this->connection->selectDatabase('admin')->command(['ping' => 1]);
             return wp_send_json(
@@ -71,8 +89,8 @@ class DB
     public function close()
     {
         if ($this->connection) {
-
             $this->connection = null;
+            update_option('mongo_username', '');
 
             return wp_send_json(
                 array(
@@ -85,15 +103,14 @@ class DB
         return wp_send_json(
             array(
                 'status' => false,
-                'message' => 'not connection in progress',
+                'message' => 'No connection in progress',
             )
         );
     }
 
     public function me()
     {
-
-        if ($this->connection) {
+        if ($this->connection):
 
             return wp_send_json(
                 array(
@@ -101,16 +118,14 @@ class DB
                     'data' => array('username' => get_option('mongo_username'), 'connected' => true),
                 )
             );
+        endif;
 
-        } else {
+        return wp_send_json(
+            array(
+                'status' => false,
+                'message' => 'No user or connection not established',
+            )
+        );
 
-            return wp_send_json(
-                array(
-                    'status' => false,
-                    'message' => 'no user',
-                )
-            );
-
-        }
     }
 }
