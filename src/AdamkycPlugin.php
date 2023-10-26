@@ -32,6 +32,9 @@ if (!class_exists('AdamkycPlugin')) {
          * Namespace for api
          */
         public $routeNamespace = 'api-adamkyc/v1';
+        /**
+         * Database
+         */
         public $db = null;
 
 
@@ -49,14 +52,22 @@ if (!class_exists('AdamkycPlugin')) {
             // function executes when shortcode is used
             add_shortcode('adamkyc_load_screen', [$this, 'loadScreen']);
 
+            wp_enqueue_script('adamkyc-plugin-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', "", "", true);
+            wp_enqueue_style('adamkyc-plugin-style', plugin_dir_url(__FILE__) . 'assets/css/style.css');
+
         }
+        public function screenStyle()
+        {
+            wp_enqueue_script('adamkyc-plugin-script', plugin_dir_url(__FILE__) . 'assets/js/script.js', "", "", true);
+            wp_enqueue_style('adamkyc-plugin-style', plugin_dir_url(__FILE__) . 'assets/css/style.css');
+        }
+
+
 
 
         public function loadScreen()
         {
-            wp_enqueue_script('adamkyc-plugin', plugin_dir_url(__FILE__) . 'assets/js/script.js', "", "", true);
-            wp_enqueue_style('adamkyc-plugin', plugin_dir_url(__FILE__) . 'assets/css/style.css');
-
+            $this->screenStyle();
             return "<div id=\"root\"></div>";
         }
 
@@ -103,20 +114,38 @@ if (!class_exists('AdamkycPlugin')) {
 
         public function me()
         {
-            global $current_user, $wp_posts;
-            $currentUser = (is_user_logged_in() ? $current_user : null);
-            return wp_send_json(
-                array(
-                    'user' => $currentUser,
-                )
-            );
+            return $this->db->me();
+
         }
         /**
          * Start connection
          */
-        public function connect()
+        public function connect(WP_REST_Request $request)
         {
-            return $this->db->start();
+            $this->saveOptions($request->get_params());
+            return $this->db->start($request->get_params());
+        }
+
+        public function saveOptions($params = [])
+        {
+            //update username
+            if (isset($params['username']) && $params['username'] !== '') {
+                update_option('mongo_username', $params['username']);
+            }
+            //update password
+            if (isset($params['password']) && $params['password'] !== '') {
+                update_option('mongo_password', $params['password']);
+            }
+
+            //update host
+            if (isset($params['host']) && $params['host'] !== '') {
+                update_option('mongo_host', $params['host']);
+            }
+            //update database
+            if (isset($params['database']) && $params['database'] !== '') {
+                update_option('mongo_database', $params['database']);
+            }
+
         }
 
 
@@ -130,11 +159,6 @@ if (!class_exists('AdamkycPlugin')) {
             return false;
         }
 
-
-
-
-
-
         /**
          * load languages
          */
@@ -142,9 +166,6 @@ if (!class_exists('AdamkycPlugin')) {
         public function load_languages()
         {
         }
-
-
-
 
         /**
          * Load javascript files 
