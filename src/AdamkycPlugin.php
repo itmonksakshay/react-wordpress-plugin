@@ -42,6 +42,7 @@ if (!class_exists('AdamkycPlugin')) {
         {
 
             $this->db = new DB();
+
             $this->plugin_url = plugins_url('/', __FILE__);
             $this->plugin_path = plugin_dir_path(__FILE__);
             //shows the menu item in sidebar
@@ -122,30 +123,71 @@ if (!class_exists('AdamkycPlugin')) {
          */
         public function connect(WP_REST_Request $request)
         {
-            $this->saveOptions($request->get_params());
-            return $this->db->start($request->get_params());
+            $requestParams = $request->get_params();
+            // update parameters in database
+            $this->saveOptions($requestParams);
+            $this->db = new DB();
+            return $this->db->start($requestParams);
         }
+
+
 
         public function saveOptions($params = [])
         {
+
             //update username
-            if (isset($params['username']) && $params['username'] !== '') {
+            if (isset($params['username']) && $params['username'] !== ''):
                 update_option('mongo_username', $params['username']);
-            }
+            else:
+                update_option('mongo_username', '');
+                return wp_send_json(
+                    array(
+                        'connection' => false,
+                        'message' => 'Username is required',
+                    )
+                );
+            endif;
+
+
             //update password
-            if (isset($params['password']) && $params['password'] !== '') {
+
+            if (isset($params['password']) && $params['password'] !== ''):
                 update_option('mongo_password', $params['password']);
-            }
+            else:
+                update_option('mongo_password', ''); // empty password
+                return wp_send_json(
+                    array(
+                        'connection' => false,
+                        'message' => 'Password is required',
+                    )
+                );
+            endif;
 
             //update host
-            if (isset($params['host']) && $params['host'] !== '') {
+            if (isset($params['host']) && $params['host'] !== ''):
                 update_option('mongo_host', $params['host']);
-            }
-            //update database
-            if (isset($params['database']) && $params['database'] !== '') {
-                update_option('mongo_database', $params['database']);
-            }
+            else:
+                update_option('mongo_host', ''); // empty host
+                return wp_send_json(
+                    array(
+                        'connection' => false,
+                        'message' => 'Host is required',
+                    )
+                );
+            endif;
 
+            //update database
+            if (isset($params['database']) && $params['database'] !== ''):
+                update_option('mongo_database', $params['database']);
+            else:
+                update_option('mongo_database', '');
+                return wp_send_json(
+                    array(
+                        'connection' => false,
+                        'message' => 'Database is required',
+                    )
+                );
+            endif;
         }
 
 

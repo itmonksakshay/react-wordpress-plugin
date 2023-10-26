@@ -13,9 +13,29 @@ class DB
     private $password = null;
     private $host = null;
     private $database = null;
+    private $url = null;
+
 
     public function __construct()
     {
+        $this->username = (get_option('mongo_username') !== '') ? get_option('mongo_username') : '';
+        $this->password = get_option('mongo_password');
+        $this->host = get_option('mongo_host');
+        $this->database = get_option('mongo_database');
+        // create url
+        $this->url = "mongodb://$this->username:$this->password@$this->host/$this->database";
+        try {
+            $this->connection = new MongoDB\Client($this->url);
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            return wp_send_json(
+                array(
+                    'connection' => true,
+                    'message' => 'INVALKID URL',
+                )
+            );
+        }
 
     }
 
@@ -24,55 +44,11 @@ class DB
      */
     public function start($options = [])
     {
-        if (isset($options['username']) && $options['username'] === '') {
-            return wp_send_json(
-                array(
-                    'connection' => false,
-                    'message' => 'Username is required',
-                )
-            );
-        }
-
-        if (isset($options['password']) && $options['password'] === '') {
-            return wp_send_json(
-                array(
-                    'connection' => false,
-                    'message' => 'Password is required',
-                )
-            );
-        }
-
-        if (isset($options['host']) && $options['host'] === '') {
-            return wp_send_json(
-                array(
-                    'connection' => false,
-                    'message' => 'Host is required',
-                )
-            );
-        }
-
-        $this->username = $options['username'];
-        $this->password = $options['password'];
-        $this->host = $options['host'];
-        $this->database = $options['database'];
 
 
-        //admin
-        //neF8ttcPmQ3QJFpj3qqq
-        //adamkyc-db.deltaplata.com:27017
-        //sanction
-        // $this->url = "mongodb://$this->user:$this->password@$this->host/sanction";
-        $uri = "mongodb://$this->username:$this->password@$this->host/$this->database";
-
-        // $uri = "mongodb://$this->username:$this->password@$this->host/sanction";
-        // Create a new client and connect to the server
-
-        try {
+               try {
             // Send a ping to confirm a successful connection
-            $this->connection = new MongoDB\Client($uri);
             $this->connection->selectDatabase('admin')->command(['ping' => 1]);
-
-
             return wp_send_json(
                 array(
                     'connection' => true,
@@ -122,7 +98,7 @@ class DB
             return wp_send_json(
                 array(
                     'status' => true,
-                    'data' => array('username' => $this->username, 'connected' => true),
+                    'data' => array('username' => get_option('mongo_username'), 'connected' => true),
                 )
             );
 
