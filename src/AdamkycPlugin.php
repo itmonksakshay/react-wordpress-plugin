@@ -152,10 +152,8 @@ if (!class_exists('AdamkycPlugin')) {
         public function disconnect()
         {
             if ($this->db) {
-
                 return $this->db->close();
             }
-
             return false;
         }
 
@@ -172,9 +170,6 @@ if (!class_exists('AdamkycPlugin')) {
          */
         public function load_scripts()
         {
-            $screen = get_current_screen();
-
-
             wp_enqueue_script('adamkyc-plugin', plugin_dir_url(__FILE__) . 'assets/js/adminScript.js', "", "", true);
 
 
